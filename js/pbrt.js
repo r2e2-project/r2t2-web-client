@@ -8,8 +8,8 @@ class Point2
     this.y = y;
   }
 
-  static add(p1, p2) { return new Point2(p1.x + p1.y, p2.x + p2.y); }
-  static sub(p1, p2) { return new Point2(p1.x - p1.y, p2.x - p2.y); }
+  static add(p1, p2) { return new Point2(p1.x + p2.x, p1.y + p2.y); }
+  static sub(p1, p2) { return new Point2(p1.x - p2.x, p1.y - p2.y); }
 
   static max(p1, p2)
   {
@@ -35,7 +35,10 @@ class Spectrum
   get g() { return this.c[1]; }
   get b() { return this.c[2]; }
 
-  get y() { return 0.212671 * c[0] + 0.715160 * c[1] + 0.072169 * c[2]; }
+  get y()
+  {
+    return 0.212671 * this.c[0] + 0.715160 * this.c[1] + 0.072169 * this.c[2];
+  }
 
   mul(coeff)
   {
@@ -119,8 +122,8 @@ class Film
    */
   add_sample(p_film, color, weight)
   {
-    if (color.y() > this.max_sample_luminance) {
-      color.mul(this.max_sample_luminance / color.y());
+    if (color.y > this.max_sample_luminance) {
+      color.mul(this.max_sample_luminance / color.y);
     }
 
     var p_film_discrete = Point2.sub(p_film, new Point2(0.5, 0.5));
