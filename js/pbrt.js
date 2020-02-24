@@ -76,7 +76,7 @@ class Film
   {
     this.resolution = resolution;
     this.filter = filter;
-    this.diagonal = diagonal;
+    this.diagonal = diagonal * 0.001;
     this.scale = scale;
     this.max_sample_luminance = max_sample_luminance;
 
@@ -103,5 +103,8 @@ class Film
     var p1 = Point2.add(p_film_discrete, this.filter.radius);
     p1.x = Math.floor(p1.x) + 1;
     p1.y = Math.floor(p1.y) + 1;
+    /* TODO: min-max */
+
+
   }
 }
