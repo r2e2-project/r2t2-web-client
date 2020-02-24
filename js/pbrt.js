@@ -43,6 +43,13 @@ class Spectrum
       this.c[i] *= coeff;
     }
   }
+
+  add(color)
+  {
+    for (var i in color.c) {
+      this.c[i] += color.c[i];
+    }
+  }
 }
 
 class Filter
@@ -53,7 +60,7 @@ class Filter
   constructor(radius)
   {
     this.radius = radius;
-    this.inv_radius = [ 1 / radius.x, 1 / radius.y ];
+    this.inv_radius = new Point2(1 / radius.x, 1 / radius.y);
   }
 }
 
@@ -87,7 +94,8 @@ class Film
     this.max_sample_luminance = max_sample_luminance;
 
     // Allocate film image storage
-    this.pixels = new Array(resolution.x * resolution.y * 4).fill(0);
+    this.contrib_sum = new Array(resolution.x * resolution.y * 3).fill(0.0);
+    this.weight_sum = new Array(resolution.x * resolution.y).fill(0.0);
 
     // Precompute filter weight table
     this.filter_table
@@ -124,6 +132,39 @@ class Film
     var p1 = Point2.add(p_film_discrete, this.filter.radius);
     p1.x = Math.floor(p1.x) + 1;
     p1.y = Math.floor(p1.y) + 1;
-    /* TODO: min-max */
+    /* TODO min-max */
+
+    var ifx = new Array(p1.x - p0.x);
+    for (var x = p0.x; x < p1.x; ++x) {
+      const fx = Math.abs((x - p_film_discrete.x) * this.filter.inv_radius.x
+                          * Film.filter_table_width);
+      ifx[x - p0.x] = Math.min(Math.floor(fx), Film.filter_table_width - 1);
+    }
+
+    var ify = new Array(p1.y - p0.y);
+    for (var y = p0.y; y < p1.y; ++y) {
+      const fy = Mathabs((y - p_film_discrete.y) * this.filter.inv_radius.y
+                         * Film.filter_table_width);
+      ify[y - p0.y] = Math.min(Math.floor(fy), Film.filter_table_width - 1);
+    }
+
+    for (var y = p0.y; y < p1.y; ++y) {
+      for (var x = p0.x; x < p1.x; ++x) {
+        // Evaluate filter value at (x,y) pixel
+        const offset = ify[y - p0.y] * Film.filter_table_width + ifx[x - p0.x];
+        const filter_weight = this.filter_table[offset];
+
+        // Update pixel values with filtered sample contribution
+        color.mul(weight);
+        color.mul(filter_weight);
+
+        var pixel_index = x + y * this.resolution.x;
+
+        pixel.contrib_sum[3 * pixel_index + 0] += color.r;
+        pixel.contrib_sum[3 * pixel_index + 1] += color.g;
+        pixel.contrib_sum[3 * pixel_index + 2] += color.b;
+        pixel.weight_sum[pixel_index] += filter_weight;
+      }
+    }
   }
 }
