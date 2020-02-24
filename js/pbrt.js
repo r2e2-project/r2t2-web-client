@@ -62,8 +62,8 @@ class Filter
    */
   constructor(radius)
   {
-    this.radius = radius;
-    this.inv_radius = new Point2(1 / radius.x, 1 / radius.y);
+    this.radius = new Point2(radius, radius);
+    this.inv_radius = new Point2(1 / radius, 1 / radius);
   }
 }
 
