@@ -144,8 +144,8 @@ class Film
 
     var ify = new Array(p1.y - p0.y);
     for (var y = p0.y; y < p1.y; ++y) {
-      const fy = Mathabs((y - p_film_discrete.y) * this.filter.inv_radius.y
-                         * Film.filter_table_width);
+      const fy = Math.abs((y - p_film_discrete.y) * this.filter.inv_radius.y
+                          * Film.filter_table_width);
       ify[y - p0.y] = Math.min(Math.floor(fy), Film.filter_table_width - 1);
     }
 
