@@ -1,0 +1,9 @@
+---
+Language: JavaScript
+BasedOnStyle: Mozilla
+ColumnLimit: 80
+SpacesInParentheses: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
+BreakBeforeBinaryOperators: All
+...
