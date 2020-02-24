@@ -159,12 +159,64 @@ class Film
         color.mul(filter_weight);
 
         var pixel_index = x + y * this.resolution.x;
-
-        pixel.contrib_sum[3 * pixel_index + 0] += color.r;
-        pixel.contrib_sum[3 * pixel_index + 1] += color.g;
-        pixel.contrib_sum[3 * pixel_index + 2] += color.b;
-        pixel.weight_sum[pixel_index] += filter_weight;
+        this.contrib_sum[3 * pixel_index + 0] += color.r;
+        this.contrib_sum[3 * pixel_index + 1] += color.g;
+        this.contrib_sum[3 * pixel_index + 2] += color.b;
+        this.weight_sum[pixel_index] += filter_weight;
       }
     }
+  }
+
+  write_image(canvas)
+  {
+    var rgba = new Array(this.resolution.x * this.resolution.y * 4);
+
+    /*
+    XYZToRGB(const Float xyz[3], Float rgb[3]):
+      rgb[0] = 3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
+      rgb[1] = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];
+      rgb[2] = 0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2];
+    */
+
+    var idx = 0;
+    for (var x = 0; x < this.resolution.x; x++) {
+      for (var y = 0; y < this.resolution.y; y++, idx++) {
+        const idx_rgb = 4 * idx;
+        const idx_xyz = 3 * idx;
+
+        rgba[idx_rgb + 0] = 3.240479 * this.contrib_sum[idx_xyz + 0]
+                            - 1.537150 * this.contrib_sum[idx_xyz + 1]
+                            - 0.498535 * this.contrib_sum[idx_xyz + 2];
+
+        rgba[idx_rgb + 1] = -0.969256 * this.contrib_sum[idx_xyz + 0]
+                            + 1.875991 * this.contrib_sum[idx_xyz + 1]
+                            + 0.041556 * this.contrib_sum[idx_xyz + 2];
+
+        rgba[idx_rgb + 2] = 0.055648 * this.contrib_sum[idx_xyz + 0]
+                            - 0.204043 * this.contrib_sum[idx_xyz + 1]
+                            + 1.057311 * this.contrib_sum[idx_xyz + 2];
+
+        rgba[idx_rgb + 3] = 255;
+
+        if (this.weight_sum[idx] != 0) {
+          const inv_wt = 1 / this.weight_sum[idx];
+
+          rgba[idx_rgb + 0]
+            = Math.max(0, rgba[idx_rgb + 0] * inv_wt) * this.scale * 255;
+
+          rgba[idx_rgb + 1]
+            = Math.max(0, rgba[idx_rgb + 1] * inv_wt) * this.scale * 255;
+
+          rgba[idx_rgb + 2]
+            = Math.max(0, rgba[idx_rgb + 2] * inv_wt) * this.scale * 255;
+        } else {
+          rgba[idx_rgb + 0] = Math.max(0, rgba[idx_rgb + 0]) * this.scale * 255;
+          rgba[idx_rgb + 1] = Math.max(0, rgba[idx_rgb + 1]) * this.scale * 255;
+          rgba[idx_rgb + 2] = Math.max(0, rgba[idx_rgb + 2]) * this.scale * 255;
+        }
+      }
+    }
+
+    canvas.putImageData(rgba, 0, 0);
   }
 }
