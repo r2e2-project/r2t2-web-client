@@ -168,9 +168,10 @@ class Film
     }
   }
 
-  write_image(canvas)
+  write_image(canvas, context)
   {
-    var rgba = new Array(this.resolution.x * this.resolution.y * 4);
+    const img_data = context.getImageData(0, 0, canvas.width, canvas.height);
+    var rgba = img_data.data;
 
     /*
     XYZToRGB(const Float xyz[3], Float rgb[3]):
@@ -185,39 +186,39 @@ class Film
         const idx_rgb = 4 * idx;
         const idx_xyz = 3 * idx;
 
-        rgba[idx_rgb + 0] = 3.240479 * this.contrib_sum[idx_xyz + 0]
-                            - 1.537150 * this.contrib_sum[idx_xyz + 1]
-                            - 0.498535 * this.contrib_sum[idx_xyz + 2];
+        const R = 3.240479 * this.contrib_sum[idx_xyz + 0]
+                  - 1.537150 * this.contrib_sum[idx_xyz + 1]
+                  - 0.498535 * this.contrib_sum[idx_xyz + 2];
 
-        rgba[idx_rgb + 1] = -0.969256 * this.contrib_sum[idx_xyz + 0]
-                            + 1.875991 * this.contrib_sum[idx_xyz + 1]
-                            + 0.041556 * this.contrib_sum[idx_xyz + 2];
+        const G = -0.969256 * this.contrib_sum[idx_xyz + 0]
+                  + 1.875991 * this.contrib_sum[idx_xyz + 1]
+                  + 0.041556 * this.contrib_sum[idx_xyz + 2];
 
-        rgba[idx_rgb + 2] = 0.055648 * this.contrib_sum[idx_xyz + 0]
-                            - 0.204043 * this.contrib_sum[idx_xyz + 1]
-                            + 1.057311 * this.contrib_sum[idx_xyz + 2];
-
-        rgba[idx_rgb + 3] = 255;
+        const B = 0.055648 * this.contrib_sum[idx_xyz + 0]
+                  - 0.204043 * this.contrib_sum[idx_xyz + 1]
+                  + 1.057311 * this.contrib_sum[idx_xyz + 2];
 
         if (this.weight_sum[idx] != 0) {
           const inv_wt = 1 / this.weight_sum[idx];
 
           rgba[idx_rgb + 0]
-            = Math.max(0, rgba[idx_rgb + 0] * inv_wt) * this.scale * 255;
+            = Math.ceil(Math.max(0, R * inv_wt) * this.scale * 255);
 
           rgba[idx_rgb + 1]
-            = Math.max(0, rgba[idx_rgb + 1] * inv_wt) * this.scale * 255;
+            = Math.ceil(Math.max(0, G * inv_wt) * this.scale * 255);
 
           rgba[idx_rgb + 2]
-            = Math.max(0, rgba[idx_rgb + 2] * inv_wt) * this.scale * 255;
+            = Math.ceil(Math.max(0, B * inv_wt) * this.scale * 255);
         } else {
-          rgba[idx_rgb + 0] = Math.max(0, rgba[idx_rgb + 0]) * this.scale * 255;
-          rgba[idx_rgb + 1] = Math.max(0, rgba[idx_rgb + 1]) * this.scale * 255;
-          rgba[idx_rgb + 2] = Math.max(0, rgba[idx_rgb + 2]) * this.scale * 255;
+          rgba[idx_rgb + 0] = Math.max(0, R) * this.scale * 255;
+          rgba[idx_rgb + 1] = Math.max(0, G) * this.scale * 255;
+          rgba[idx_rgb + 2] = Math.max(0, B) * this.scale * 255;
         }
+
+        rgba[idx_rgb + 3] = 255;
       }
     }
 
-    canvas.putImageData(rgba, 0, 0);
+    context.putImageData(img_data, 0, 0);
   }
 }

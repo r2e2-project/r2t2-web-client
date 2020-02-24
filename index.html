@@ -7,7 +7,6 @@
   <title>R2T2</title>
   <style>
     body { margin: 0; padding:0; }
-    canvas { width: 100%; height: 100%; display:block; z-index:0; }
   </style>
 
   <link rel="icon" type="image/png" href="img/favicon.png">
@@ -16,7 +15,26 @@
 </head>
 <body>
 
+  <canvas id="output" width="1024" height="600"></canvas>
+
+  <script src="data/killeroo-simple.js"></script>
   <script src="js/pbrt.js"></script>
+
+  <script>
+    var canvas = document.getElementById('output');
+    var context = canvas.getContext('2d');
+    var film = new Film(new Point2(1024, 600), new BoxFilter(0.5), 1.0, Infinity);
+
+    for (var i in samples) {
+      const point = new Point2(samples[i][0], samples[i][1]);
+      const color = new Spectrum(samples[i][2], samples[i][3], samples[i][4]);
+      const weight = samples[i][5];
+
+      film.add_sample(point, color, weight);
+    }
+
+    film.write_image(canvas, context);
+  </script>
 
 </body>
 </html>
