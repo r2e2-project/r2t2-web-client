@@ -173,30 +173,15 @@ class Film
     const img_data = context.getImageData(0, 0, canvas.width, canvas.height);
     var rgba = img_data.data;
 
-    /*
-    XYZToRGB(const Float xyz[3], Float rgb[3]):
-      rgb[0] = 3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
-      rgb[1] = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];
-      rgb[2] = 0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2];
-    */
-
     var idx = 0;
     for (var x = 0; x < this.resolution.x; x++) {
       for (var y = 0; y < this.resolution.y; y++, idx++) {
-        const idx_rgb = 4 * idx;
         const idx_xyz = 3 * idx;
+        const idx_rgb = 4 * idx;
 
-        const R = 3.240479 * this.contrib_sum[idx_xyz + 0]
-                  - 1.537150 * this.contrib_sum[idx_xyz + 1]
-                  - 0.498535 * this.contrib_sum[idx_xyz + 2];
-
-        const G = -0.969256 * this.contrib_sum[idx_xyz + 0]
-                  + 1.875991 * this.contrib_sum[idx_xyz + 1]
-                  + 0.041556 * this.contrib_sum[idx_xyz + 2];
-
-        const B = 0.055648 * this.contrib_sum[idx_xyz + 0]
-                  - 0.204043 * this.contrib_sum[idx_xyz + 1]
-                  + 1.057311 * this.contrib_sum[idx_xyz + 2];
+        const R = this.contrib_sum[idx_xyz + 0];
+        const G = this.contrib_sum[idx_xyz + 1];
+        const B = this.contrib_sum[idx_xyz + 2];
 
         if (this.weight_sum[idx] != 0) {
           const inv_wt = 1 / this.weight_sum[idx];
@@ -210,9 +195,9 @@ class Film
           rgba[idx_rgb + 2]
             = Math.ceil(Math.max(0, B * inv_wt) * this.scale * 255);
         } else {
-          rgba[idx_rgb + 0] = Math.max(0, R) * this.scale * 255;
-          rgba[idx_rgb + 1] = Math.max(0, G) * this.scale * 255;
-          rgba[idx_rgb + 2] = Math.max(0, B) * this.scale * 255;
+          rgba[idx_rgb + 0] = Math.ceil(Math.max(0, R) * this.scale * 255);
+          rgba[idx_rgb + 1] = Math.ceil(Math.max(0, G) * this.scale * 255);
+          rgba[idx_rgb + 2] = Math.ceil(Math.max(0, B) * this.scale * 255);
         }
 
         rgba[idx_rgb + 3] = 255;
