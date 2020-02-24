@@ -77,6 +77,20 @@ class BoxFilter extends Filter
   evaluate(point) { return 1.0; }
 }
 
+function gamma_correct(value)
+{
+  if (value <= 0.0031308) {
+    return 12.92 * value;
+  }
+
+  return 1.055 * Math.pow(value, (1.0 / 2.4)) - 0.055;
+}
+
+function clamp(num, min, max)
+{
+  return num <= min ? min : num >= max ? max : num;
+}
+
 class Film
 {
   static filter_table_width = 16;
@@ -179,25 +193,37 @@ class Film
         const idx_xyz = 3 * idx;
         const idx_rgb = 4 * idx;
 
-        const R = this.contrib_sum[idx_xyz + 0];
-        const G = this.contrib_sum[idx_xyz + 1];
-        const B = this.contrib_sum[idx_xyz + 2];
+        var R = this.contrib_sum[idx_xyz + 0];
+        var G = this.contrib_sum[idx_xyz + 1];
+        var B = this.contrib_sum[idx_xyz + 2];
 
         if (this.weight_sum[idx] != 0) {
           const inv_wt = 1 / this.weight_sum[idx];
 
-          rgba[idx_rgb + 0]
-            = Math.ceil(Math.max(0, R * inv_wt) * this.scale * 255);
+          R = Math.max(0, R * inv_wt) * this.scale;
+          G = Math.max(0, G * inv_wt) * this.scale;
+          B = Math.max(0, B * inv_wt) * this.scale;
 
-          rgba[idx_rgb + 1]
-            = Math.ceil(Math.max(0, G * inv_wt) * this.scale * 255);
+          R = Math.trunc(clamp(255 * gamma_correct(R) + 0.5, 0, 255));
+          G = Math.trunc(clamp(255 * gamma_correct(G) + 0.5, 0, 255));
+          B = Math.trunc(clamp(255 * gamma_correct(B) + 0.5, 0, 255));
 
-          rgba[idx_rgb + 2]
-            = Math.ceil(Math.max(0, B * inv_wt) * this.scale * 255);
+          rgba[idx_rgb + 0] = R;
+          rgba[idx_rgb + 1] = G;
+          rgba[idx_rgb + 2] = B;
+
         } else {
-          rgba[idx_rgb + 0] = Math.ceil(Math.max(0, R) * this.scale * 255);
-          rgba[idx_rgb + 1] = Math.ceil(Math.max(0, G) * this.scale * 255);
-          rgba[idx_rgb + 2] = Math.ceil(Math.max(0, B) * this.scale * 255);
+          R = Math.max(0, R) * this.scale;
+          G = Math.max(0, G) * this.scale;
+          B = Math.max(0, B) * this.scale;
+
+          R = Math.trunc(clamp(255 * gamma_correct(R) + 0.5, 0, 255));
+          G = Math.trunc(clamp(255 * gamma_correct(G) + 0.5, 0, 255));
+          B = Math.trunc(clamp(255 * gamma_correct(B) + 0.5, 0, 255));
+
+          rgba[idx_rgb + 0] = R;
+          rgba[idx_rgb + 1] = G;
+          rgba[idx_rgb + 2] = B;
         }
 
         rgba[idx_rgb + 3] = 255;
