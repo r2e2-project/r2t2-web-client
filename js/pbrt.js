@@ -84,15 +84,13 @@ class Film
   /**
    * @param {Point2} resolution
    * @param {Filter} filter
-   * @param {float} diagonal
    * @param {float} scale
    * @param {float} max_sample_luminance
    */
-  constructor(resolution, filter, diagonal, scale, max_sample_luminance)
+  constructor(resolution, filter, scale, max_sample_luminance)
   {
     this.resolution = resolution;
     this.filter = filter;
-    this.diagonal = diagonal * 0.001;
     this.scale = scale;
     this.max_sample_luminance = max_sample_luminance;
 
