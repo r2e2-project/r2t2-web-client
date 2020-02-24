@@ -1,3 +1,5 @@
+'use strict';
+
 class Point2
 {
   constructor(x, y)
@@ -61,10 +63,14 @@ class BoxFilter extends Filter
    * @param {Point2} radius
    */
   constructor(radius) { super(radius); }
+
+  evaluate(point) { return 1.0; }
 }
 
 class Film
 {
+  static filter_table_width = 16;
+
   /**
    * @param {Point2} resolution
    * @param {Filter} filter
@@ -80,7 +86,22 @@ class Film
     this.scale = scale;
     this.max_sample_luminance = max_sample_luminance;
 
-    this.pixels = new Array(resolution.x * resolution.y * 4, 0);
+    // Allocate film image storage
+    this.pixels = new Array(resolution.x * resolution.y * 4).fill(0);
+
+    // Precompute filter weight table
+    this.filter_table
+      = new Array(Film.filter_table_width * Film.filter_table_width).fill(0);
+
+    var offset = 0;
+    for (var x = 0; x < Film.filter_table_width; x++) {
+      for (var y = 0; y < Film.filter_table_width; y++, offset++) {
+        var point = new Point2(0, 0);
+        point.x = (x + 0.5) * this.filter.radius.x / Film.filter_table_width;
+        point.y = (y + 0.5) * this.filter.radius.y / Film.filter_table_width;
+        this.filter_table[offset] = this.filter.evaluate(point);
+      }
+    }
   }
 
   /**
@@ -104,7 +125,5 @@ class Film
     p1.x = Math.floor(p1.x) + 1;
     p1.y = Math.floor(p1.y) + 1;
     /* TODO: min-max */
-
-
   }
 }
