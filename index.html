@@ -30,14 +30,6 @@
     var context = canvas.getContext('2d');
     var film = new Film(new Point2(1024, 600), new BoxFilter(0.5), 1.0, Infinity);
 
-    /* for (var i in samples) {
-      const point = new Point2(samples[i][0], samples[i][1]);
-      const color = new Spectrum(samples[i][2], samples[i][3], samples[i][4]);
-      const weight = samples[i][5];
-
-      film.add_sample(point, color, weight);
-  } */
-
     fetch("https://r2t2-us-west-1.s3-us-west-1.amazonaws.com/jobs/5e55c2ba/samples/W5/B5")
       .then((response) => {
         if (!response.ok) {
@@ -81,6 +73,22 @@
       }).then(() => {
         film.write_image(canvas, context);
       });
+
+      const socket = new WebSocket("ws://sadjad.stanford.edu:9091");
+
+      socket.addEventListener('open', (event) => {
+        console.log(event);
+        socket.send('subscribe 0');
+      });
+
+      socket.addEventListener('message', (event) => {
+        console.log('msg: ', event.data);
+      });
+
+      socket.addEventListener('close', (event) => {
+        console.log('closed');
+      });
+
   </script>
 
 </body>
