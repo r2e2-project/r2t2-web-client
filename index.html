@@ -23,7 +23,6 @@
     </div>
   </div>
 
-  <script src="data/killeroo-simple.js"></script>
   <script src="js/pbrt.js"></script>
 
   <script>
@@ -31,15 +30,57 @@
     var context = canvas.getContext('2d');
     var film = new Film(new Point2(1024, 600), new BoxFilter(0.5), 1.0, Infinity);
 
-    for (var i in samples) {
+    /* for (var i in samples) {
       const point = new Point2(samples[i][0], samples[i][1]);
       const color = new Spectrum(samples[i][2], samples[i][3], samples[i][4]);
       const weight = samples[i][5];
 
       film.add_sample(point, color, weight);
-    }
+  } */
 
-    film.write_image(canvas, context);
+    fetch("https://r2t2-us-west-1.s3-us-west-1.amazonaws.com/jobs/5e55c2ba/samples/W5/B5")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('response was not ok');
+        }
+
+        return response.arrayBuffer();
+      })
+      .then((buffer) => {
+        var littleEndian = true;
+        var dv = new DataView(buffer);
+        for (var offset = 0; offset < dv.byteLength;) {
+          var len = dv.getUint32(offset, littleEndian);
+          offset += 4;
+
+          // var sampleId = dv.getUint64(offset, littleEndian);
+          offset += 8;
+
+          var x = dv.getFloat32(offset, littleEndian);
+          offset += 4;
+
+          var y = dv.getFloat32(offset, littleEndian);
+          offset += 4;
+
+          var weight = dv.getFloat32(offset, littleEndian);
+          offset += 4;
+
+          var r = dv.getFloat32(offset, littleEndian);
+          offset += 4;
+
+          var g = dv.getFloat32(offset, littleEndian);
+          offset += 4;
+
+          var b = dv.getFloat32(offset, littleEndian);
+          offset += 4;
+
+          var p_film = new Point2(x, y);
+          var color = new Spectrum(r, g, b);
+          film.add_sample(p_film, color, weight);
+        }
+      }).then(() => {
+        film.write_image(canvas, context);
+      });
   </script>
 
 </body>
