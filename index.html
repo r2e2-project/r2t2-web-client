@@ -10,6 +10,9 @@
   </style>
 
   <link rel="icon" type="image/png" href="img/favicon.png">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
   <link rel="stylesheet" href="css/style.css" />
 
 </head>
@@ -18,78 +21,14 @@
   <div id="container">
     <canvas id="output" width="1024" height="600"></canvas>
     <div id="info">
-      <div class="text">killeroo-simple | 1024&times;600 @4spp | 100%</div>
+      <button type="button" id="start-job" class="btn btn-dark btn-sm"><i class="fas fa-play"></i></button>
+        <span class="text">killeroo-simple | 1024&times;600</span>
       <img class="logo" src="img/logo.svg">
     </div>
   </div>
 
   <script src="js/pbrt.js"></script>
-
-  <script>
-    var canvas = document.getElementById('output');
-    var context = canvas.getContext('2d');
-    var film = new Film(new Point2(1024, 600), new BoxFilter(0.5), 1.0, Infinity);
-
-    fetch("https://r2t2-us-west-1.s3-us-west-1.amazonaws.com/jobs/5e55c2ba/samples/W5/B5")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('response was not ok');
-        }
-
-        return response.arrayBuffer();
-      })
-      .then((buffer) => {
-        var littleEndian = true;
-        var dv = new DataView(buffer);
-        for (var offset = 0; offset < dv.byteLength;) {
-          var len = dv.getUint32(offset, littleEndian);
-          offset += 4;
-
-          // var sampleId = dv.getUint64(offset, littleEndian);
-          offset += 8;
-
-          var x = dv.getFloat32(offset, littleEndian);
-          offset += 4;
-
-          var y = dv.getFloat32(offset, littleEndian);
-          offset += 4;
-
-          var weight = dv.getFloat32(offset, littleEndian);
-          offset += 4;
-
-          var r = dv.getFloat32(offset, littleEndian);
-          offset += 4;
-
-          var g = dv.getFloat32(offset, littleEndian);
-          offset += 4;
-
-          var b = dv.getFloat32(offset, littleEndian);
-          offset += 4;
-
-          var p_film = new Point2(x, y);
-          var color = new Spectrum(r, g, b);
-          film.add_sample(p_film, color, weight);
-        }
-      }).then(() => {
-        film.write_image(canvas, context);
-      });
-
-      const socket = new WebSocket("ws://sadjad.stanford.edu:9091");
-
-      socket.addEventListener('open', (event) => {
-        console.log(event);
-        socket.send('subscribe 0');
-      });
-
-      socket.addEventListener('message', (event) => {
-        console.log('msg: ', event.data);
-      });
-
-      socket.addEventListener('close', (event) => {
-        console.log('closed');
-      });
-
-  </script>
+  <script src="js/app.js"></script>
 
 </body>
 </html>

@@ -22,10 +22,9 @@ body {
 
 #info .text {
   color: #999;
-  font-family: "DejaVu Sans";
-  font-size: 12px;
-  margin: 6px 8px;
-  float:left;
+  font-family: "SF Mono", monospace;
+  font-size:13px;
+  padding-left:10px;
 }
 
 #info .logo {
